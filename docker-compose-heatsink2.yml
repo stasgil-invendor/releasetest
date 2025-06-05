@@ -1,0 +1,188 @@
+
+services:
+  mqttclient-release:
+    image: invendorapp/mqttclient-release:0.127
+    depends_on:
+      nats:
+        condition: service_started
+      natssetup-release:
+        condition: service_completed_successfully
+    restart: always
+    volumes:
+      - config:/config
+      - logs:/logs
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
+  # taskmanager-release:
+  #   image: invendorapp/taskmanager-release:0.127
+  #   depends_on:
+  #     nats:
+  #       condition: service_started
+  #     natssetup-release:
+  #       condition: service_completed_successfully
+  #   restart: always
+  #   volumes:
+  #     - config:/config
+  #     - logs:/logs
+  #   logging:
+  #     driver: local
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
+
+
+  ble-release:
+    image: invendorapp/ble-release:0.127
+    privileged: true
+    depends_on:
+      nats:
+        condition: service_started
+      natssetup-release:
+        condition: service_completed_successfully
+    volumes:
+      - config:/config
+      - logs:/logs
+      - /var/run/dbus:/var/run/dbus
+    restart: always
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
+  gpio-release:
+    image: invendorapp/gpio-release:0.127
+    privileged: true
+    devices:
+      - "/dev/gpiochip0"
+      - "/dev/gpiochip1"
+      - "/dev/gpiochip2"
+    volumes:
+      - config:/config
+      - logs:/logs
+      - /proc/nfc_reader:/nfc_reader:ro
+    depends_on:
+      nats:
+        condition: service_started
+      natssetup-release:
+        condition: service_completed_successfully
+    restart: always
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  natssetup-release:
+    image: invendorapp/natssetup-release:0.127
+    depends_on:
+      nats:
+        condition: service_started
+    volumes:
+      - config:/config
+      - logs:/logs
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
+  scale-release:
+    image: invendorapp/scale-release:0.127
+    depends_on:
+      nats:
+        condition: service_started
+      natssetup-release:
+        condition: service_completed_successfully
+    devices:
+      - "/dev/verdin-i2c4"
+      - "/dev/i2c-4"
+      - "/dev/gpiochip0"
+      - "/dev/gpiochip1"
+      - "/dev/gpiochip2"
+    restart: always
+    volumes:
+      - logs:/logs
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  heatsinkcore-release:
+    image: invendorapp/heatsinkcore-release:0.127
+    depends_on:
+      nats:
+        condition: service_started
+      pgdatabase:
+        condition: service_healthy
+      natssetup-release:
+        condition: service_completed_successfully
+    restart: always
+    volumes:
+      - config:/config
+      - logs:/logs
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  pgdatabase:
+    image: postgres:13
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: heatsink2core
+      POSTGRES_PASSWORD: heatsink2core
+      POSTGRES_DB: heatsink2core
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    platform: linux/arm64
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U heatsink2core"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  nats:
+    image: nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+      - "6222:6222"
+    expose:
+      - 4222
+      - 6222
+      - 8222
+    command: -js
+    restart: always
+    logging:
+      driver: local
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
+volumes:
+  config:
+    name: config
+  logs:
+    name: logs
+  db-data:
+    name: db-data
+  nfc_reader:
+    name: nfc_reader
+    # driver: local
+    # driver_opts:
+    #   type: none
+    #   o: bind
+    #   device: /config
