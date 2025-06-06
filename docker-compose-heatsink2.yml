@@ -1,7 +1,7 @@
 
 services:
   mqttclient-release:
-    image: invendorapp/mqttclient-release:0.127
+    image: invendorapp/mqttclient-release:0.0.4
     depends_on:
       nats:
         condition: service_started
@@ -19,7 +19,7 @@ services:
 
 
   # taskmanager-release:
-  #   image: invendorapp/taskmanager-release:0.127
+  #   image: invendorapp/taskmanager-release:0.0.4
   #   depends_on:
   #     nats:
   #       condition: service_started
@@ -37,7 +37,7 @@ services:
 
 
   ble-release:
-    image: invendorapp/ble-release:0.127
+    image: invendorapp/ble-release:0.0.4
     privileged: true
     depends_on:
       nats:
@@ -57,7 +57,7 @@ services:
 
 
   gpio-release:
-    image: invendorapp/gpio-release:0.127
+    image: invendorapp/gpio-release:0.0.4
     privileged: true
     devices:
       - "/dev/gpiochip0"
@@ -80,7 +80,7 @@ services:
         max-file: "3"
 
   natssetup-release:
-    image: invendorapp/natssetup-release:0.127
+    image: invendorapp/natssetup-release:0.0.4
     depends_on:
       nats:
         condition: service_started
@@ -95,7 +95,7 @@ services:
 
 
   scale-release:
-    image: invendorapp/scale-release:0.127
+    image: invendorapp/scale-release:0.0.4
     depends_on:
       nats:
         condition: service_started
@@ -117,7 +117,7 @@ services:
         max-file: "3"
 
   heatsinkcore-release:
-    image: invendorapp/heatsinkcore-release:0.127
+    image: invendorapp/heatsinkcore-release:0.0.4
     depends_on:
       nats:
         condition: service_started
